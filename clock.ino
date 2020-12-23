@@ -22,8 +22,8 @@ const int dClkPin = 12; // Clock
 const int dIoPin = 11; // Input/Output
 
 // Control buttons pins
-const int bModePin = 9; // Mode Button
-const int bIncPin = 10; // Increment Button
+const int bModePin = 2; // Mode Button
+const int bIncPin = 3; // Increment Button
 
 // Loop Delay
 const int lDelay = 50;
@@ -172,7 +172,7 @@ boolean checkButton(bool* prev, int8_t dPin, void (*callback)(void)) {
   return false;
 }
 
-void clickModeButton() {
+void onClickModeButton() {
   switch(clockMode) {
     case meViewTime:
     case meViewDayMonth:
@@ -201,7 +201,7 @@ void clickModeButton() {
   }
 }
 
-void clickIncrementButton() {
+void onClickIncrementButton() {
   switch(clockMode) {
     case meViewTime:
     case meViewDayMonth:
@@ -234,9 +234,14 @@ void clickIncrementButton() {
   }
 }
 
-void clickLoop() {
-  checkButton(&bModeState, bModePin, clickModeButton);
-  checkButton(&bIncState, bIncPin, clickIncrementButton);
+void clickModeButton() {
+  bModeState = true;
+  return;
+}
+
+void clickIncButtonHandler() {
+  bIncState = true;
+  return;
 }
 
 void setup() {
@@ -244,8 +249,12 @@ void setup() {
 
   // Initialize Buttons & Led Pins
   pinMode(LED_BUILTIN, OUTPUT);
+  
   pinMode(bModePin, INPUT); // Change Mode Pin
+  attachInterrupt(0, clickModeButton, RISING);
+  
   pinMode(bIncPin, INPUT); // Increment Value Pin
+  attachInterrupt(1, clickIncButtonHandler, RISING);
   
   // Initialize Clock
   rtc.writeProtect(false);
@@ -254,11 +263,21 @@ void setup() {
   // Initialize Display
   disp.init();
   disp.set(BRIGHT_TYPICAL);
-}
+} 
 
 // Loop Event lDelay Miliseconds
 void loop() {
-  halfSecondLoop();
-  clickLoop();
+  halfSecondLoop();  
+  
+  if (bModeState) {
+    onClickModeButton();
+    bModeState = false;
+  }
+
+  if (bIncState) {
+    onClickIncrementButton();
+    bIncState = false;
+  }
+  
   delay(lDelay);
 }
