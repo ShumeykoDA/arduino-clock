@@ -18,11 +18,10 @@ const int kIoPin   = 6;  // Input/Output
 const int kSclkPin = 7;  // Serial Clock
 
 // TM1637 display pins
-const int dClkPin = 3; // Clock
-const int dIoPin = 2; // Input/Output
+const int dClkPin = 12; // Clock
+const int dIoPin = 11; // Input/Output
 
 // Control buttons pins
-const int bHlPin = 8; // Hightlight Button
 const int bModePin = 9; // Mode Button
 const int bIncPin = 10; // Increment Button
 
@@ -173,13 +172,6 @@ boolean checkButton(bool* prev, int8_t dPin, void (*callback)(void)) {
   return false;
 }
 
-void clickHightlightButton() {
-  if (highlight == 0) { highlight = 2; }
-  else if (highlight == 2) { highlight = 7; }
-  else highlight = 0;
-  disp.set(highlight);
-}
-
 void clickModeButton() {
   switch(clockMode) {
     case meViewTime:
@@ -211,6 +203,14 @@ void clickModeButton() {
 
 void clickIncrementButton() {
   switch(clockMode) {
+    case meViewTime:
+    case meViewDayMonth:
+    case meViewYear:
+      if (highlight == 0) { highlight = 2; }
+      else if (highlight == 2) { highlight = 7; }
+      else highlight = 0;
+      disp.set(highlight);
+      break;
     case meEditYear:
       if (editTime.yr < 2040) editTime.yr++;
       else editTime.yr = 2013;
@@ -235,7 +235,6 @@ void clickIncrementButton() {
 }
 
 void clickLoop() {
-  checkButton(&bHglState, bHlPin, clickHightlightButton);
   checkButton(&bModeState, bModePin, clickModeButton);
   checkButton(&bIncState, bIncPin, clickIncrementButton);
 }
@@ -245,7 +244,6 @@ void setup() {
 
   // Initialize Buttons & Led Pins
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(bHlPin, INPUT); // Highlight Pin
   pinMode(bModePin, INPUT); // Change Mode Pin
   pinMode(bIncPin, INPUT); // Increment Value Pin
   
